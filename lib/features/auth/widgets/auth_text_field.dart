@@ -42,14 +42,14 @@ class AuthTextField extends StatelessWidget {
       prefixIcon: prefixIcon != null
           ? Icon(
               prefixIcon,
-              color: theme.iconTheme.color?.withOpacity(0.6),
+              color: theme.iconTheme.color?.withValues(alpha: 0.6),
             )
           : null,
       suffixIcon: suffixIcon != null
           ? IconButton(
               onPressed: onSuffixIconPressed,
               icon: Icon(suffixIcon),
-              color: theme.iconTheme.color?.withOpacity(0.6),
+              color: theme.iconTheme.color?.withValues(alpha: 0.6),
             )
           : null,
       contentPadding: const EdgeInsets.symmetric(

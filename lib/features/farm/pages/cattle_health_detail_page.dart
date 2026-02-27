@@ -37,7 +37,7 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
           .order('recorded_at', ascending: false)
           .limit(5);
 
-      if (resp == null) return [];
+      if (resp.isEmpty) return [];
       final list = resp as List;
       return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
     } catch (e) {
@@ -53,7 +53,6 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
           .select('tag_number, breed, gender, date_of_birth, is_active')
           .eq('id', widget.cattleId);
 
-      if (resp == null) return null;
       if ((resp as List).isEmpty) return null;
       return Map<String, dynamic>.from(resp[0] as Map);
     } catch (e) {
@@ -71,7 +70,6 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
           .order('recorded_at', ascending: false)
           .limit(1);
 
-      if (resp == null) return null;
       if ((resp as List).isEmpty) return null;
       return Map<String, dynamic>.from(resp[0] as Map);
     } catch (e) {
@@ -184,7 +182,7 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(GowlokSpacing.md),
                             decoration: BoxDecoration(
-                              color: GowlokColors.critical.withOpacity(0.1),
+                              color: GowlokColors.critical.withValues(alpha: 0.1),
                               border: Border.all(
                                 color: GowlokColors.critical,
                                 width: 2,
@@ -214,7 +212,7 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(GowlokSpacing.md),
                             decoration: BoxDecoration(
-                              color: Color(0xFFFFA500).withOpacity(0.1),
+                              color: const Color(0xFFFFA500).withValues(alpha: 0.1),
                               border: Border.all(
                                 color: Color(0xFFFFA500),
                                 width: 2,

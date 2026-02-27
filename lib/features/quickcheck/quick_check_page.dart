@@ -42,7 +42,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
           .eq('is_active', true);
 
       if (!mounted) return;
-      if (cattleResp == null || (cattleResp as List).isEmpty) {
+      if ((cattleResp as List).isEmpty) {
         if (!mounted) return;
         setState(() {
           _isLoading = false;
@@ -60,7 +60,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
         try {
           final farmResp = await client.from('farms').select('name').eq('id', farmId);
           if (!mounted) return;
-          if (farmResp != null && (farmResp as List).isNotEmpty) {
+          if ((farmResp as List).isNotEmpty) {
             farmName = (farmResp[0] as Map)['name']?.toString();
           }
         } catch (e) {
@@ -79,7 +79,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
               .limit(1);
 
           if (!mounted) return;
-          if (healthResp != null && (healthResp as List).isNotEmpty) {
+          if ((healthResp as List).isNotEmpty) {
             health = Map<String, dynamic>.from(healthResp[0] as Map);
           }
         } catch (e) {
@@ -172,7 +172,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(GowlokSpacing.md),
                     decoration: BoxDecoration(
-                      color: GowlokColors.critical.withOpacity(0.1),
+                      color: GowlokColors.critical.withValues(alpha: 0.1),
                       borderRadius:
                           BorderRadius.circular(GowlokTheme.cardRadius),
                       border: Border.all(
@@ -294,7 +294,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(GowlokSpacing.md),
               decoration: BoxDecoration(
-                color: GowlokColors.critical.withOpacity(0.1),
+                color: GowlokColors.critical.withValues(alpha: 0.1),
                 border: Border.all(color: GowlokColors.critical, width: 2),
                 borderRadius:
                     BorderRadius.circular(GowlokTheme.cardRadius),
@@ -321,7 +321,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(GowlokSpacing.md),
               decoration: BoxDecoration(
-                color: Color(0xFFFFA500).withOpacity(0.1),
+                color: const Color(0xFFFFA500).withValues(alpha: 0.1),
                 border: Border.all(color: Color(0xFFFFA500), width: 2),
                 borderRadius:
                     BorderRadius.circular(GowlokTheme.cardRadius),

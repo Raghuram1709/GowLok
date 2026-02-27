@@ -28,11 +28,6 @@ class FarmContext {
         .limit(1)
         .single();
 
-    if (response == null) {
-      activeFarm = null;
-      return null;
-    }
-
     final farmId = response['farm_id']?.toString();
     final role = response['role']?.toString() ?? 'worker';
     final farms = response['farms'] as Map<String, dynamic>?;

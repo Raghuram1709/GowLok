@@ -78,9 +78,9 @@ class _AlertsPageState extends State<AlertsPage> {
 
                   Color bgColor;
                   if (severity == 'critical') {
-                    bgColor = GowlokColors.critical.withOpacity(0.1);
+                    bgColor = GowlokColors.critical.withValues(alpha: 0.1);
                   } else if (severity == 'warning') {
-                    bgColor = const Color(0xFFFFA500).withOpacity(0.1);
+                    bgColor = const Color(0xFFFFA500).withValues(alpha: 0.1);
                   } else {
                     bgColor = Colors.transparent;
                   }

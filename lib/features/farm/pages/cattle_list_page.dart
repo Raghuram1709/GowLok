@@ -198,7 +198,7 @@ class _CattleListPageState extends State<CattleListPage> {
                                       vertical: GowlokSpacing.xs,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: statusColor.withOpacity(0.2),
+                                      color: statusColor.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(
                                         GowlokTheme.chipRadius,
                                       ),

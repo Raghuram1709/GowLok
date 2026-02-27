@@ -14,11 +14,11 @@ class FarmSummaryService {
 
       if (resp == null) return {};
 
-      if (resp is Map) return Map<String, dynamic>.from(resp as Map);
+      if (resp is Map) return Map<String, dynamic>.from(resp);
 
       if (resp is List && resp.isNotEmpty) {
         final first = resp[0];
-        if (first is Map) return Map<String, dynamic>.from(first as Map);
+        if (first is Map) return Map<String, dynamic>.from(first);
       }
 
       return {};

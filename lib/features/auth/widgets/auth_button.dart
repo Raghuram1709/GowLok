@@ -34,7 +34,7 @@ class AuthButton extends StatelessWidget {
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.white.withOpacity(0.8),
+                    Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
               )

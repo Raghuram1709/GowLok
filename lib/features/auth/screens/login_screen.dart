@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/auth/auth_provider.dart';
 import '../../../core/auth/auth_validator.dart';
-import '../../../core/router/app_router.dart';
 import 'signup_screen.dart';
 import 'reset_password_screen.dart';
 import '../widgets/auth_text_field.dart';
@@ -53,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       'Welcome back',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                     ),
                     const SizedBox(height: 40),
@@ -170,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       'Don\'t have an account? ',
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         fontSize: 14,
                       ),
                     ),
@@ -205,20 +204,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = context.read<AuthProvider>();
-    final navigator = Navigator.of(context);
 
-    final success = await authProvider.signInWithEmail(
+    await authProvider.signInWithEmail(
       email: _emailController.text,
       password: _passwordController.text,
     );
-
-    if (!mounted) return;
-
-    if (success) {
-      navigator.pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AppRouter()),
-        (route) => false,
-      );
-    }
+    // AuthGate Consumer handles navigation automatically on auth state change
   }
 }

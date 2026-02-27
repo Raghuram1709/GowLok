@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'app_theme.dart';
 
 /// Centralized ThemeController (ChangeNotifier)
 /// - exposes ThemeMode (light, dark, system)

@@ -35,7 +35,6 @@ class ProfilePage extends StatelessWidget {
                       modeLabel = 'Dark';
                       break;
                     case ThemeMode.system:
-                    default:
                       modeLabel = 'System';
                       break;
                   }

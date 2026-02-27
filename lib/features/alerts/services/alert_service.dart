@@ -27,7 +27,6 @@ class AlertService {
           .eq('farm_id', farmId)
           .order('created_at', ascending: false);
 
-      if (response == null) return [];
       final list = response as List;
       return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
     } catch (e) {

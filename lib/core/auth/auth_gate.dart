@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../router/app_router.dart';
 import '../../features/auth/screens/login_screen.dart';
-import '../../features/farm/farm_context.dart';
 import 'auth_provider.dart';
 
 class AuthGate extends StatelessWidget {
@@ -16,7 +15,6 @@ class AuthGate extends StatelessWidget {
           return const LoginScreen();
         }
 
-        FarmContext.resolveActiveFarm();
         return const AppRouter();
       },
     );
