@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:gowlok/core/widgets/top_app_bar.dart';
 import 'package:gowlok/core/theme/health_status_colors.dart';
 import 'package:gowlok/core/theme/app_theme.dart';
+import '../../core/locale/app_translations.dart';
 
 class QuickCheckPage extends StatefulWidget {
   const QuickCheckPage({Key? key}) : super(key: key);
@@ -125,25 +125,27 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GowlokTopBar(title: 'Quick Check'),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(GowlokSpacing.md),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          child: RefreshIndicator(
+            onRefresh: _search,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 const SizedBox(height: 4),
                 Text(
-                  'Quick Check',
+                  tr(context, 'quick_check'),
                   style: GowlokTextStyles.headline2,
                 ),
                 const SizedBox(height: GowlokSpacing.lg),
                 TextField(
                   controller: _tagController,
                   decoration: InputDecoration(
-                    labelText: 'Cattle Tag Number',
-                    hintText: 'e.g., TAG001',
+                    labelText: tr(context, 'cattle_tag'),
+                    hintText: tr(context, 'tag_hint'),
                   ),
                   onSubmitted: (_) => _search(),
                 ),
@@ -163,7 +165,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
                               ),
                             ),
                           )
-                        : const Text('Check'),
+                        : Text(tr(context, 'check')),
                   ),
                 ),
                 const SizedBox(height: GowlokSpacing.lg),
@@ -194,6 +196,7 @@ class _QuickCheckPageState extends State<QuickCheckPage> {
                 ],
               ],
             ),
+          ),
           ),
         ),
       ),

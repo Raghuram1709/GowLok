@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/auth/auth_provider.dart';
 import '../../../core/auth/auth_validator.dart';
+import '../../../core/auth/auth_gate.dart';
+import '../../../core/widgets/global_nav_controller.dart';
 import 'signup_screen.dart';
 import 'reset_password_screen.dart';
 import '../widgets/auth_text_field.dart';
@@ -155,6 +157,42 @@ class _LoginScreenState extends State<LoginScreen> {
                                 isLoading: authProvider.isLoading,
                                 onPressed: () => _handleLogin(context),
                               ),
+                              const SizedBox(height: 16),
+                              // Google Sign in button
+                              SizedBox(
+                                width: double.infinity,
+                                height: 48,
+                                child: OutlinedButton.icon(
+                                  onPressed: authProvider.isLoading
+                                      ? null
+                                      : () async {
+                                          GlobalNavController.selectedIndex.value = 1;
+                                          final success = await authProvider.signInWithGoogle();
+                                          if (success && context.mounted) {
+                                            // Navigation is handled declaratively by AuthGate rebuilding
+                                          }
+                                        },
+                                  icon: Image.network(
+                                    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/240px-Google_%22G%22_logo.svg.png',
+                                    height: 24,
+                                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, size: 24),
+                                  ),
+                                  label: const Text(
+                                    'Continue with Google',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.black87,
+                                    side: const BorderSide(color: Colors.black26),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           );
                         },
@@ -175,7 +213,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushReplacement(
+                        // Use push instead of pushReplacement to avoid replacing the AuthGate base route
+                        Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => const SignupScreen(),
                           ),
@@ -205,10 +244,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final authProvider = context.read<AuthProvider>();
 
-    await authProvider.signInWithEmail(
+    final success = await authProvider.signInWithEmail(
       email: _emailController.text,
       password: _passwordController.text,
     );
-    // AuthGate Consumer handles navigation automatically on auth state change
+    
+    if (success) {
+      GlobalNavController.selectedIndex.value = 1; // Existing users go to Farm Home
+      // Navigation is natively handled by AuthGate reacting to the new AppRouter state
+    }
   }
 }

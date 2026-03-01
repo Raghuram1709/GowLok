@@ -1,89 +1,115 @@
 import 'package:flutter/material.dart';
-import '../../features/farm/farm_shell.dart';
+import 'package:provider/provider.dart';
+import '../../features/farm/farm_home_page.dart';
 import '../../features/quickcheck/quick_check_page.dart';
 import '../../features/profile/profile_page.dart';
 import 'bottom_nav_bar.dart';
 import 'top_app_bar.dart';
+import 'settings_drawer.dart';
+import 'global_nav_controller.dart';
 import '../theme/app_theme.dart';
+import '../locale/locale_controller.dart';
+import '../locale/app_translations.dart';
 
-class MainHomePage extends StatefulWidget {
+class MainHomePage extends StatelessWidget {
   const MainHomePage({Key? key}) : super(key: key);
 
-  @override
-  State<MainHomePage> createState() => _MainHomePageState();
-}
-
-class _MainHomePageState extends State<MainHomePage> {
-  int _selectedIndex = 0; // used only for visual feedback on the root
-
   void _onTap(int index) {
-    // Home (0) is root content — do not push.
-    if (index == 0) {
-      setState(() => _selectedIndex = 0);
-      return;
-    }
+    GlobalNavController.selectedIndex.value = index;
+  }
 
-    setState(() => _selectedIndex = index);
+  Widget _buildHomeBody(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.all(GowlokSpacing.md),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.info_outline, size: 72),
+            const SizedBox(height: GowlokSpacing.lg),
+            Text(
+              tr(context, 'welcome'),
+              style: GowlokTextStyles.headline2,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: GowlokSpacing.md),
+            Text(
+              tr(context, 'welcome_desc'),
+              style: GowlokTextStyles.bodyMedium.copyWith(
+                color: isDark ? GowlokColors.neutral300 : GowlokColors.neutral600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: GowlokSpacing.lg),
+          ],
+        ),
+      ),
+    );
+  }
 
-    Widget page;
+  String _titleForIndex(BuildContext context, int index) {
     switch (index) {
+      case 0:
+        return tr(context, 'app_name');
       case 1:
-        page = const FarmShell();
-        break;
+        return tr(context, 'farm');
       case 2:
-        page = const QuickCheckPage();
-        break;
+        return tr(context, 'check');
       case 3:
+        return tr(context, 'profile');
       default:
-        page = const ProfilePage();
-        break;
+        return tr(context, 'app_name');
     }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => page),
-    ).then((_) {
-      // restore highlight to Home (root) when returning
-      if (mounted) setState(() => _selectedIndex = 0);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      appBar: GowlokTopBar(title: 'GOWLOK', showHamburger: true),
-      body: Padding(
-        padding: const EdgeInsets.all(GowlokSpacing.md),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.info_outline,
-                size: 72,
-              ),
-              const SizedBox(height: GowlokSpacing.lg),
-              Text(
-                'Welcome to GOWLOK',
-                style: GowlokTextStyles.headline2,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: GowlokSpacing.md),
-              Text(
-                'Manage your farm, run quick checks and review your profile',
-                style: GowlokTextStyles.bodyMedium.copyWith(
-                  color: isDark ? GowlokColors.neutral300 : GowlokColors.neutral600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: GowlokSpacing.lg),
-            ],
+    return Consumer<LocaleController>(
+      builder: (context, localeCtrl, _) {
+        return Scaffold(
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: ValueListenableBuilder<int>(
+              valueListenable: GlobalNavController.selectedIndex,
+              builder: (context, currentIndex, _) {
+                return GowlokTopBar(
+                  title: _titleForIndex(context, currentIndex),
+                  showHamburger: currentIndex == 0,
+                );
+              },
+            ),
           ),
-        ),
-      ),
-      bottomNavigationBar: GlobalBottomNav(currentIndex: _selectedIndex, onTap: _onTap),
+          endDrawer: const SettingsDrawer(), // Always provided, gesture handles when to show. Or we can conditionally disable inside drawer.
+          body: ValueListenableBuilder<int>(
+            valueListenable: GlobalNavController.selectedIndex,
+            builder: (context, currentIndex, _) {
+              return Stack(
+                children: [
+                  IndexedStack(
+                    index: currentIndex,
+                    children: [
+                      _buildHomeBody(context),
+                      const FarmHomePage(),
+                      const QuickCheckPage(),
+                      const ProfilePage(),
+                    ],
+                  ),
+                  Positioned(
+                    bottom: GowlokSpacing.lg,
+                    left: GowlokSpacing.lg,
+                    right: GowlokSpacing.lg,
+                    child: GlobalBottomNav(
+                      currentIndex: currentIndex,
+                      onTap: _onTap,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

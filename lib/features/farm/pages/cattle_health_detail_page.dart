@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/widgets/bottom_nav_bar.dart';
 import 'package:gowlok/core/widgets/top_app_bar.dart';
 import 'package:gowlok/core/theme/health_status_colors.dart';
 import 'package:gowlok/core/theme/app_theme.dart';
+import '../../../core/locale/app_translations.dart';
+import '../farm_context.dart';
+import 'cattle_full_details_page.dart';
+import 'cattle_edit_page.dart';
 
 class CattleHealthDetailPage extends StatefulWidget {
   final String cattleId;
   final String tagNumber;
 
-  const CattleHealthDetailPage({Key? key, required this.cattleId, required this.tagNumber}) : super(key: key);
+  const CattleHealthDetailPage(
+      {Key? key, required this.cattleId, required this.tagNumber})
+      : super(key: key);
 
   @override
-  State<CattleHealthDetailPage> createState() => _CattleHealthDetailPageState();
+  State<CattleHealthDetailPage> createState() =>
+      _CattleHealthDetailPageState();
 }
 
 class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
@@ -22,6 +30,10 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
     _cattleFuture = _fetchCattleIdentity();
     _healthFuture = _fetchLatestHealth();
     _historyFuture = _fetchHealthHistory();
@@ -50,7 +62,8 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
     try {
       final resp = await client
           .from('cattle')
-          .select('tag_number, breed, gender, date_of_birth, is_active')
+          .select(
+              'name, tag_number, breed, gender, date_of_birth, is_active, primary_image_url')
           .eq('id', widget.cattleId);
 
       if ((resp as List).isEmpty) return null;
@@ -65,7 +78,8 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
     try {
       final resp = await client
           .from('cattle_health_readings')
-          .select('body_temperature, heart_rate, activity_level, rumination_minutes, status, recorded_at')
+          .select(
+              'body_temperature, heart_rate, activity_level, rumination_minutes, status, recorded_at')
           .eq('cattle_id', widget.cattleId)
           .order('recorded_at', ascending: false)
           .limit(1);
@@ -83,7 +97,8 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
       final dob = DateTime.parse(dobString);
       final now = DateTime.now();
       int age = now.year - dob.year;
-      if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+      if (now.month < dob.month ||
+          (now.month == dob.month && now.day < dob.day)) {
         age--;
       }
       return age;
@@ -106,7 +121,32 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GowlokTopBar(title: 'Cattle Details'),
+      appBar: GowlokTopBar(
+        title: tr(context, 'cattle_details'),
+        extraActions: [
+          if (FarmContext.activeFarm?.role.toLowerCase() == 'admin')
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit Cattle',
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CattleEditPage(
+                      cattleId: widget.cattleId,
+                      tagNumber: widget.tagNumber,
+                    ),
+                  ),
+                );
+                // Refresh data after edit
+                if (mounted) {
+                  setState(() => _loadData());
+                }
+              },
+            ),
+        ],
+      ),
+      bottomNavigationBar: GlobalBottomNav.persistent(context),
       body: FutureBuilder<Map<String, dynamic>?>(
         future: _cattleFuture,
         builder: (context, cattleSnapshot) {
@@ -123,10 +163,12 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
             return const Center(child: Text('Cattle details not available'));
           }
 
+          final name = cattleData['name']?.toString();
           final breed = cattleData['breed']?.toString() ?? 'Unknown';
           final gender = cattleData['gender']?.toString() ?? '—';
           final dateOfBirth = cattleData['date_of_birth']?.toString();
           final age = _calculateAge(dateOfBirth);
+          final imageUrl = cattleData['primary_image_url']?.toString();
 
           return FutureBuilder<Map<String, dynamic>?>(
             future: _healthFuture,
@@ -149,93 +191,122 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // ── CATTLE INFO CARD (IMAGE + DETAILS) ──
                       Card(
                         child: Padding(
                           padding: const EdgeInsets.all(GowlokSpacing.md),
-                          child: Column(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                breed,
-                                style: GowlokTextStyles.headline1,
+                              // Image
+                              Container(
+                                width: 90,
+                                height: 90,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? GowlokColors.neutral700
+                                      : GowlokColors.neutral200,
+                                ),
+                                child: imageUrl != null && imageUrl.isNotEmpty
+                                    ? ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                        child: Image.network(
+                                          imageUrl,
+                                          fit: BoxFit.cover,
+                                          width: 90,
+                                          height: 90,
+                                          errorBuilder: (_, __, ___) =>
+                                              const Icon(Icons.pets, size: 40),
+                                        ),
+                                      )
+                                    : const Icon(Icons.pets, size: 40),
                               ),
-                              const SizedBox(height: GowlokSpacing.xs),
-                              Text(
-                                widget.tagNumber,
-                                style: GowlokTextStyles.headline3,
-                              ),
-                              const SizedBox(height: GowlokSpacing.sm),
-                              Text(
-                                '$gender • $age years old',
-                                style: GowlokTextStyles.bodySmall.copyWith(
-                                  color: GowlokColors.neutral600,
+                              const SizedBox(width: GowlokSpacing.md),
+                              // Info
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (name != null && name.isNotEmpty)
+                                      Text(
+                                        name,
+                                        style: GowlokTextStyles.headline1,
+                                      ),
+                                    Text(
+                                      widget.tagNumber,
+                                      style: name != null && name.isNotEmpty
+                                          ? GowlokTextStyles.headline3
+                                          : GowlokTextStyles.headline1,
+                                    ),
+                                    const SizedBox(height: GowlokSpacing.xs),
+                                    Text(
+                                      breed,
+                                      style: GowlokTextStyles.bodyMedium
+                                          .copyWith(
+                                        color: GowlokColors.neutral600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '$gender • $age years old',
+                                      style: GowlokTextStyles.bodySmall
+                                          .copyWith(
+                                        color: GowlokColors.neutral600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                      const SizedBox(height: GowlokSpacing.lg),
-                      if (healthData != null && healthData.isNotEmpty) ...[
-                        if (status == 'critical')
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(GowlokSpacing.md),
-                            decoration: BoxDecoration(
-                              color: GowlokColors.critical.withValues(alpha: 0.1),
-                              border: Border.all(
-                                color: GowlokColors.critical,
-                                width: 2,
-                              ),
-                              borderRadius:
-                                  BorderRadius.circular(GowlokTheme.cardRadius),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.emergency,
-                                  color: GowlokColors.critical,
-                                ),
-                                const SizedBox(width: GowlokSpacing.md),
-                                Text(
-                                  'Immediate attention required',
-                                  style: GowlokTextStyles.bodyLarge.copyWith(
-                                    color: GowlokColors.critical,
-                                    fontWeight: FontWeight.w600,
+
+                      // ── VIEW FULL DETAILS BUTTON ──
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: GowlokSpacing.sm,
+                        ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CattleFullDetailsPage(
+                                    cattleId: widget.cattleId,
+                                    tagNumber: widget.tagNumber,
                                   ),
                                 ),
-                              ],
+                              );
+                            },
+                            icon: const Icon(Icons.info_outline, size: 18),
+                            label: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              child: Text('View Full Details'),
                             ),
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: GowlokSpacing.sm),
+
+                      // Health alert banners
+                      if (healthData != null && healthData.isNotEmpty) ...[
+                        if (status == 'critical')
+                          _alertBanner(
+                            icon: Icons.emergency,
+                            color: GowlokColors.critical,
+                            message: 'Immediate attention required',
+                          ),
                         if (status == 'warning')
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(GowlokSpacing.md),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFA500).withValues(alpha: 0.1),
-                              border: Border.all(
-                                color: Color(0xFFFFA500),
-                                width: 2,
-                              ),
-                              borderRadius:
-                                  BorderRadius.circular(GowlokTheme.cardRadius),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.warning,
-                                  color: Color(0xFFFFA500),
-                                ),
-                                const SizedBox(width: GowlokSpacing.md),
-                                Text(
-                                  'Monitor health closely',
-                                  style: GowlokTextStyles.bodyLarge.copyWith(
-                                    color: Color(0xFFFFA500),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          _alertBanner(
+                            icon: Icons.warning,
+                            color: const Color(0xFFFFA500),
+                            message: 'Monitor health closely',
                           ),
                         const SizedBox(height: GowlokSpacing.md),
                         Card(
@@ -249,7 +320,7 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Health Status',
+                                      tr(context, 'health_status'),
                                       style: GowlokTextStyles.headline3,
                                     ),
                                     Container(
@@ -266,37 +337,35 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
                                       child: Text(
                                         (status ?? 'NORMAL').toUpperCase(),
                                         style: GowlokTextStyles.labelSmall
-                                            .copyWith(
-                                          color: Colors.white,
-                                        ),
+                                            .copyWith(color: Colors.white),
                                       ),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: GowlokSpacing.md),
                                 _metricRow(
-                                  'Body Temperature',
+                                  tr(context, 'body_temp'),
                                   bodyTemp != null
                                       ? '${bodyTemp.toString()} °C'
                                       : '—',
                                 ),
                                 const SizedBox(height: GowlokSpacing.sm),
                                 _metricRow(
-                                  'Heart Rate',
+                                  tr(context, 'heart_rate'),
                                   heartRate != null
                                       ? '${heartRate.toString()} bpm'
                                       : '—',
                                 ),
                                 const SizedBox(height: GowlokSpacing.sm),
                                 _metricRow(
-                                  'Activity Level',
+                                  tr(context, 'activity_level'),
                                   activity != null
                                       ? '${activity.toString()} %'
                                       : '—',
                                 ),
                                 const SizedBox(height: GowlokSpacing.sm),
                                 _metricRow(
-                                  'Rumination',
+                                  tr(context, 'rumination'),
                                   rumination != null
                                       ? '${rumination.toString()} min/day'
                                       : '—',
@@ -324,7 +393,7 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
                                     ),
                                     const SizedBox(height: GowlokSpacing.md),
                                     Text(
-                                      'No health data available',
+                                      tr(context, 'no_health_data'),
                                       style: GowlokTextStyles.bodyMedium
                                           .copyWith(
                                         color: GowlokColors.neutral600,
@@ -364,7 +433,7 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Recent Health History',
+                                tr(context, 'recent_history'),
                                 style: GowlokTextStyles.headline3,
                               ),
                               const SizedBox(height: GowlokSpacing.md),
@@ -375,7 +444,7 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
                                   ),
                                   child: Center(
                                     child: Text(
-                                      'No previous health records',
+                                      tr(context, 'no_history'),
                                       style: GowlokTextStyles.bodyMedium
                                           .copyWith(
                                         color: GowlokColors.neutral600,
@@ -395,8 +464,8 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
                                     ),
                                     child: Card(
                                       child: Padding(
-                                        padding:
-                                            const EdgeInsets.all(GowlokSpacing.md),
+                                        padding: const EdgeInsets.all(
+                                            GowlokSpacing.md),
                                         child: Row(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
@@ -451,8 +520,8 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
                                               style: GowlokTextStyles
                                                   .bodySmall
                                                   .copyWith(
-                                                color: GowlokColors
-                                                    .neutral600,
+                                                color:
+                                                    GowlokColors.neutral600,
                                               ),
                                             ),
                                           ],
@@ -476,14 +545,40 @@ class _CattleHealthDetailPageState extends State<CattleHealthDetailPage> {
     );
   }
 
+  Widget _alertBanner({
+    required IconData icon,
+    required Color color,
+    required String message,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(GowlokSpacing.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color, width: 2),
+        borderRadius: BorderRadius.circular(GowlokTheme.cardRadius),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: GowlokSpacing.md),
+          Text(
+            message,
+            style: GowlokTextStyles.bodyLarge.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _metricRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: GowlokTextStyles.bodyMedium,
-        ),
+        Text(label, style: GowlokTextStyles.bodyMedium),
         Text(
           value,
           style: GowlokTextStyles.bodyMedium.copyWith(

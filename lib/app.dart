@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/auth/auth_service.dart';
@@ -6,6 +7,7 @@ import 'core/auth/auth_provider.dart';
 import 'core/auth/auth_gate.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
+import 'core/locale/locale_controller.dart';
 
 class GowlokApp extends StatelessWidget {
   const GowlokApp({Key? key}) : super(key: key);
@@ -19,19 +21,28 @@ class GowlokApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AuthProvider(authService)..initialize(),
         ),
-        // controller that drives the application's theme mode
         ChangeNotifierProvider(
           create: (_) => ThemeController(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => LocaleController(),
+        ),
       ],
-      child: Consumer<ThemeController>(
-        builder: (context, themeCtrl, _) {
+      child: Consumer2<ThemeController, LocaleController>(
+        builder: (context, themeCtrl, localeCtrl, _) {
           return MaterialApp(
             title: 'GOWLOK',
             debugShowCheckedModeBanner: false,
             theme: GowlokTheme.lightTheme(),
             darkTheme: GowlokTheme.darkTheme(),
             themeMode: themeCtrl.themeMode,
+            locale: localeCtrl.locale,
+            supportedLocales: LocaleController.supportedLocales,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
             home: const AuthGate(),
           );
         },

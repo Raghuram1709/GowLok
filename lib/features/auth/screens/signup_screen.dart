@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/auth/auth_provider.dart';
 import '../../../core/auth/auth_validator.dart';
+import '../../../core/auth/auth_gate.dart';
+import '../../../core/widgets/global_nav_controller.dart';
 import 'login_screen.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/auth_button.dart';
@@ -16,6 +18,7 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -25,6 +28,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -67,6 +71,22 @@ class _SignupScreenState extends State<SignupScreen> {
                         builder: (context, authProvider, _) {
                           return Column(
                             children: [
+                              // Full Name field
+                              AuthTextField(
+                                controller: _nameController,
+                                label: 'Full Name',
+                                hint: 'John Doe',
+                                keyboardType: TextInputType.name,
+                                prefixIcon: Icons.person_outline,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Please enter your full name';
+                                  }
+                                  return null;
+                                },
+                                enabled: !authProvider.isLoading,
+                              ),
+                              const SizedBox(height: 20),
                               // Email field
                               AuthTextField(
                                 controller: _emailController,
@@ -172,6 +192,41 @@ class _SignupScreenState extends State<SignupScreen> {
                                 isLoading: authProvider.isLoading,
                                 onPressed: () => _handleSignup(context),
                               ),
+                              const SizedBox(height: 16),
+                              // Google Sign up button
+                              SizedBox(
+                                width: double.infinity,
+                                height: 48,
+                                child: OutlinedButton.icon(
+                                  onPressed: authProvider.isLoading
+                                      ? null
+                                        : () async {
+                                          GlobalNavController.selectedIndex.value = 0;
+                                          final success = await authProvider.signInWithGoogle();
+                                          if (success && context.mounted) {
+                                            // Navigation handled by AuthGate
+                                          }
+                                        },
+                                  icon: Image.network(
+                                    'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+                                    height: 24,
+                                  ),
+                                  label: const Text(
+                                    'Continue with Google',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.black87,
+                                    side: const BorderSide(color: Colors.black26),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           );
                         },
@@ -192,11 +247,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (_) => const LoginScreen(),
-                          ),
-                        );
+                        // Just pop to return to LoginScreen since SignupScreen was pushed
+                        Navigator.of(context).pop();
                       },
                       child: Text(
                         'Sign in',
@@ -227,22 +279,28 @@ class _SignupScreenState extends State<SignupScreen> {
     final success = await authProvider.signUpWithEmail(
       email: _emailController.text,
       password: _passwordController.text,
+      fullName: _nameController.text,
     );
 
     if (!mounted) return;
 
     if (success) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: const Text('Sign up successful! Please sign in.'),
-          backgroundColor: Colors.green[600],
-        ),
-      );
+      if (authProvider.isAuthenticated) {
+        GlobalNavController.selectedIndex.value = 0;
+        // Navigation handled by AuthGate, pop current screen
+        navigator.pop();
+      } else {
+        // Need email verification
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: const Text('Sign up successful! Please verify your email, then sign in.'),
+            backgroundColor: Colors.green[600],
+          ),
+        );
 
-      navigator.pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false,
-      );
+        // Pop back to the login screen
+        navigator.pop();
+      }
     }
   }
 }

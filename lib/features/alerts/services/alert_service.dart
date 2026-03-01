@@ -42,4 +42,67 @@ class AlertService {
       rethrow;
     }
   }
+
+  /// Get pending approvals for a farm, joined with cattle details manually
+  static Future<List<Map<String, dynamic>>> getPendingApprovals(String farmId) async {
+    try {
+      // Fetch approvals without join since entity_id is polymorphic
+      final response = await _client
+          .from('approvals')
+          .select('''
+            id,
+            entity_type,
+            entity_id,
+            action,
+            status,
+            created_at
+          ''')
+          .eq('farm_id', farmId)
+          .eq('status', 'pending')
+          .order('created_at', ascending: false);
+
+      final list = (response as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+
+      // Fetch related cattle data separately
+      for (var approval in list) {
+        if (approval['entity_type'] == 'cattle') {
+          try {
+            final cattleResponse = await _client
+                .from('cattle')
+                .select('id, tag_number, name, breed, gender, primary_image_url, date_of_birth')
+                .eq('id', approval['entity_id'].toString())
+                .maybeSingle();
+            
+            if (cattleResponse != null) {
+              approval['cattle'] = cattleResponse;
+            }
+          } catch (_) {
+            // Cattle fetch failed, continue with just the approval data
+          }
+        }
+      }
+      
+      return list;
+    } catch (e) {
+      print('Error fetching pending approvals: $e');
+      return [];
+    }
+  }
+
+  /// Review an approval (Approve or Reject)
+  static Future<void> reviewApproval({
+    required String approvalId,
+    required String status, // 'approved' or 'rejected'
+    String? remarks,
+  }) async {
+    try {
+      await _client.rpc('review_approval', params: {
+        'approval_id': approvalId,
+        'new_status': status,
+        'review_notes': remarks,
+      });
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

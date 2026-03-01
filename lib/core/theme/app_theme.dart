@@ -1,19 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+class GowlokPageTransitionsBuilder extends PageTransitionsBuilder {
+  const GowlokPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // Enter transition: Fade in + Slide up from bottom
+    final enterTween = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero)
+        .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut));
+    
+    // Exit transition (when pushing another page on top): Scale down + Fade out
+    final exitScaleTween = Tween<double>(begin: 1.0, end: 0.95)
+        .animate(CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOut));
+        
+    final exitFadeTween = Tween<double>(begin: 1.0, end: 0.0)
+        .animate(CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOut));
+
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: enterTween,
+        child: FadeTransition(
+          opacity: exitFadeTween,
+          child: ScaleTransition(
+            scale: exitScaleTween,
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class GowlokColors {
-  static const Color success = Color(0xFF37FD12);
-  static const Color primary = Color(0xFF0000FF);
-  static const Color critical = Color(0xFFFF0000);
+  // Brand Colors
+  static const Color primary = Color(0xFF0F62FE); // Deep vibrant blue
+  static const Color secondary = Color(0xFF393939); // Deep neutral
   
-  static const Color neutral100 = Color(0xFFFAFAFA);
-  static const Color neutral200 = Color(0xFFF5F5F5);
-  static const Color neutral300 = Color(0xFFEFEFEF);
-  static const Color neutral400 = Color(0xFFE0E0E0);
-  static const Color neutral500 = Color(0xFFBDBDBD);
-  static const Color neutral600 = Color(0xFF888888);
-  static const Color neutral700 = Color(0xFF616161);
-  static const Color neutral800 = Color(0xFF424242);
-  static const Color neutral900 = Color(0xFF212121);
+  // Neutral Colors Light
+  static const Color neutral100 = Color(0xFFF4F4F4);
+  static const Color neutral200 = Color(0xFFE0E0E0);
+  static const Color neutral300 = Color(0xFFC6C6C6);
+  static const Color neutral400 = Color(0xFFA8A8A8);
+  
+  // Neutral Colors Dark
+  static const Color neutral500 = Color(0xFF8D8D8D);
+  static const Color neutral600 = Color(0xFF6F6F6F);
+  static const Color neutral700 = Color(0xFF525252);
+  static const Color neutral800 = Color(0xFF393939);
+  static const Color neutral900 = Color(0xFF262626);
+  
+  // Semantic Colors
+  static const Color success = Color(0xFF198038); // Deep green
+  static const Color error = Color(0xFFDA1E28); // Deep red
+  static const Color warning = Color(0xFFF1C21B); // Gold/Yellow
+  static const Color info = Color(0xFF0043CE); // Info blue
+  
+  // Surface Colors
+  static const Color surfaceLight = Colors.white;
+  static const Color surfaceDark = Color(0xFF161616); // True deep dark
+  
+  // Farm Section Specific Colors
+  static const Color farmHeaderStart = Color(0xFF0F62FE);
+  static const Color farmHeaderEnd = Color(0xFF0043CE);
+  
+  // Quick Check Section Colors
+  static const Color checkCardBgLight = Color(0xFFF8F9FA);
+  static const Color checkCardBgDark = Color(0xFF262626);
+  static const Color checkIconBgLight = Color(0xFFEDF5FF);
+  static const Color checkIconBgDark = Color(0xFF001141);
+  
+  // Common Gradients
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [primary, Color(0xFF0043CE)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  
+  static const LinearGradient successGradient = LinearGradient(
+    colors: [success, Color(0xFF0E6027)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  
+  static const LinearGradient checkHeaderGradient = LinearGradient(
+    colors: [Color(0xFF8A3FFC), Color(0xFF6929C4)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  
+  static const Color critical = error; // Restored for backward compatibility
 }
 
 class GowlokSpacing {
@@ -24,44 +107,44 @@ class GowlokSpacing {
 }
 
 class GowlokTextStyles {
-  static const TextStyle headline1 = TextStyle(
+  static final TextStyle headline1 = GoogleFonts.outfit(
     fontSize: 28,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.w800,
   );
   
-  static const TextStyle headline2 = TextStyle(
+  static final TextStyle headline2 = GoogleFonts.outfit(
     fontSize: 24,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.w700,
   );
   
-  static const TextStyle headline3 = TextStyle(
+  static final TextStyle headline3 = GoogleFonts.outfit(
     fontSize: 20,
+    fontWeight: FontWeight.w700,
+  );
+  
+  static final TextStyle bodyLarge = GoogleFonts.outfit(
+    fontSize: 16,
     fontWeight: FontWeight.w600,
   );
   
-  static const TextStyle bodyLarge = TextStyle(
-    fontSize: 16,
+  static final TextStyle bodyMedium = GoogleFonts.outfit(
+    fontSize: 14,
     fontWeight: FontWeight.w500,
   );
   
-  static const TextStyle bodyMedium = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-  );
-  
-  static const TextStyle bodySmall = TextStyle(
+  static final TextStyle bodySmall = GoogleFonts.outfit(
     fontSize: 12,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w500,
   );
   
-  static const TextStyle labelMedium = TextStyle(
+  static final TextStyle labelMedium = GoogleFonts.outfit(
     fontSize: 14,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w700,
   );
   
-  static const TextStyle labelSmall = TextStyle(
+  static final TextStyle labelSmall = GoogleFonts.outfit(
     fontSize: 12,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w700,
   );
 }
 
@@ -75,8 +158,14 @@ class GowlokTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       primaryColor: GowlokColors.primary,
-      scaffoldBackgroundColor: GowlokColors.neutral100,
+      scaffoldBackgroundColor: GowlokColors.neutral100, // Light gray for deeper contrast
       cardColor: Colors.white,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: GowlokPageTransitionsBuilder(),
+          TargetPlatform.iOS: GowlokPageTransitionsBuilder(),
+        },
+      ),
       textTheme: TextTheme(
         headlineSmall: GowlokTextStyles.headline1,
         headlineMedium: GowlokTextStyles.headline2,
@@ -89,7 +178,7 @@ class GowlokTheme {
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: GowlokTextStyles.headline3.copyWith(
@@ -98,19 +187,22 @@ class GowlokTheme {
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
-        elevation: 2,
+        elevation: 8, // Increased elevation for a floating premium feel
+        shadowColor: Colors.black.withOpacity(0.08), // Soft premium shadow
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(GowlokTheme.cardRadius),
-          side: BorderSide(color: GowlokColors.neutral300, width: 1),
+          side: BorderSide(color: GowlokColors.neutral200, width: 1.5), // Softer, thicker border
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: GowlokColors.primary,
           foregroundColor: Colors.white,
+          elevation: 4,
+          shadowColor: GowlokColors.primary.withOpacity(0.4),
           padding: const EdgeInsets.symmetric(
-            horizontal: GowlokSpacing.md,
-            vertical: GowlokSpacing.sm,
+            horizontal: GowlokSpacing.lg,
+            vertical: GowlokSpacing.md,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(GowlokTheme.buttonRadius),
@@ -119,22 +211,23 @@ class GowlokTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: GowlokColors.neutral200,
-        disabledColor: GowlokColors.neutral300,
+        backgroundColor: GowlokColors.primary.withOpacity(0.08), // Primary tint
+        disabledColor: GowlokColors.neutral200,
         selectedColor: GowlokColors.primary,
         secondarySelectedColor: GowlokColors.primary,
         padding: const EdgeInsets.symmetric(horizontal: GowlokSpacing.sm),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(GowlokTheme.chipRadius),
+          side: const BorderSide(color: Colors.transparent),
         ),
         labelStyle: GowlokTextStyles.bodySmall,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: GowlokColors.neutral200,
+        fillColor: Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(GowlokTheme.cardRadius),
-          borderSide: BorderSide(color: GowlokColors.neutral400),
+          borderSide: BorderSide(color: GowlokColors.neutral300),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(GowlokTheme.cardRadius),
@@ -149,12 +242,12 @@ class GowlokTheme {
           vertical: GowlokSpacing.sm,
         ),
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Colors.white,
         selectedItemColor: GowlokColors.primary,
         unselectedItemColor: GowlokColors.neutral600,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 20,
       ),
     );
   }
@@ -164,58 +257,49 @@ class GowlokTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       primaryColor: GowlokColors.primary,
-      scaffoldBackgroundColor: GowlokColors.neutral900,
-      cardColor: GowlokColors.neutral800,
+      scaffoldBackgroundColor: const Color(0xFF121212), // Deep pure dark
+      cardColor: const Color(0xFF1E1E1E), // Elevated dark surface
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: GowlokPageTransitionsBuilder(),
+          TargetPlatform.iOS: GowlokPageTransitionsBuilder(),
+        },
+      ),
       textTheme: TextTheme(
-        headlineSmall: GowlokTextStyles.headline1.copyWith(
-          color: GowlokColors.neutral100,
-        ),
-        headlineMedium: GowlokTextStyles.headline2.copyWith(
-          color: GowlokColors.neutral100,
-        ),
-        titleLarge: GowlokTextStyles.headline3.copyWith(
-          color: GowlokColors.neutral100,
-        ),
-        bodyLarge: GowlokTextStyles.bodyLarge.copyWith(
-          color: GowlokColors.neutral200,
-        ),
-        bodyMedium: GowlokTextStyles.bodyMedium.copyWith(
-          color: GowlokColors.neutral300,
-        ),
-        bodySmall: GowlokTextStyles.bodySmall.copyWith(
-          color: GowlokColors.neutral500,
-        ),
-        labelMedium: GowlokTextStyles.labelMedium.copyWith(
-          color: GowlokColors.neutral100,
-        ),
-        labelSmall: GowlokTextStyles.labelSmall.copyWith(
-          color: GowlokColors.neutral200,
-        ),
+        headlineSmall: GowlokTextStyles.headline1.copyWith(color: Colors.white),
+        headlineMedium: GowlokTextStyles.headline2.copyWith(color: Colors.white),
+        titleLarge: GowlokTextStyles.headline3.copyWith(color: Colors.white),
+        bodyLarge: GowlokTextStyles.bodyLarge.copyWith(color: GowlokColors.neutral200),
+        bodyMedium: GowlokTextStyles.bodyMedium.copyWith(color: GowlokColors.neutral300),
+        bodySmall: GowlokTextStyles.bodySmall.copyWith(color: GowlokColors.neutral400),
+        labelMedium: GowlokTextStyles.labelMedium.copyWith(color: Colors.white),
+        labelSmall: GowlokTextStyles.labelSmall.copyWith(color: GowlokColors.neutral200),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: GowlokColors.neutral800,
-        surfaceTintColor: GowlokColors.neutral800,
+        backgroundColor: const Color(0xFF121212),
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GowlokTextStyles.headline3.copyWith(
-          color: GowlokColors.neutral100,
-        ),
+        titleTextStyle: GowlokTextStyles.headline3.copyWith(color: Colors.white),
       ),
       cardTheme: CardThemeData(
-        color: GowlokColors.neutral800,
-        elevation: 2,
+        color: const Color(0xFF1E1E1E),
+        elevation: 8,
+        shadowColor: Colors.black.withOpacity(0.4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(GowlokTheme.cardRadius),
-          side: BorderSide(color: GowlokColors.neutral700, width: 1),
+          side: BorderSide(color: Colors.white.withOpacity(0.05), width: 1), // Subtle light stroke
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: GowlokColors.primary,
           foregroundColor: Colors.white,
+          elevation: 4,
+          shadowColor: GowlokColors.primary.withOpacity(0.2),
           padding: const EdgeInsets.symmetric(
-            horizontal: GowlokSpacing.md,
-            vertical: GowlokSpacing.sm,
+            horizontal: GowlokSpacing.lg,
+            vertical: GowlokSpacing.md,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(GowlokTheme.buttonRadius),
@@ -224,28 +308,27 @@ class GowlokTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: GowlokColors.neutral700,
-        disabledColor: GowlokColors.neutral600,
+        backgroundColor: GowlokColors.primary.withOpacity(0.15), // Highly visible primary tint
+        disabledColor: GowlokColors.neutral800,
         selectedColor: GowlokColors.primary,
         secondarySelectedColor: GowlokColors.primary,
         padding: const EdgeInsets.symmetric(horizontal: GowlokSpacing.sm),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(GowlokTheme.chipRadius),
+          side: const BorderSide(color: Colors.transparent),
         ),
-        labelStyle: GowlokTextStyles.bodySmall.copyWith(
-          color: GowlokColors.neutral100,
-        ),
+        labelStyle: GowlokTextStyles.bodySmall.copyWith(color: GowlokColors.primary),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: GowlokColors.neutral700,
+        fillColor: const Color(0xFF1E1E1E),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(GowlokTheme.cardRadius),
-          borderSide: BorderSide(color: GowlokColors.neutral600),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(GowlokTheme.cardRadius),
-          borderSide: BorderSide(color: GowlokColors.neutral700),
+          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(GowlokTheme.cardRadius),
@@ -256,12 +339,12 @@ class GowlokTheme {
           vertical: GowlokSpacing.sm,
         ),
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: GowlokColors.neutral800,
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Color(0xFF1E1E1E),
         selectedItemColor: GowlokColors.primary,
-        unselectedItemColor: GowlokColors.neutral600,
+        unselectedItemColor: GowlokColors.neutral500,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 20,
       ),
     );
   }

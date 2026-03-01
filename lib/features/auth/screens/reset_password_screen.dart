@@ -153,12 +153,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       AuthButton(
                         label: 'Back to Login',
                         onPressed: () {
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                            (route) => false,
-                          );
+                          // Just pop to return to the LoginScreen
+                          Navigator.of(context).pop();
                         },
                       ),
                     ],
@@ -179,11 +175,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (_) => const LoginScreen(),
-                              ),
-                            );
+                            // Just pop
+                            Navigator.of(context).pop();
                           },
                           child: Text(
                             'Sign in',

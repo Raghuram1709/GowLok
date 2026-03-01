@@ -22,13 +22,27 @@ class AuthService {
   Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
+    required String fullName,
   }) async {
     try {
       final response = await supabase.auth.signUp(
         email: email.trim(),
         password: password,
+        data: {'full_name': fullName.trim()},
       );
       return response;
+    } catch (_) {
+      rethrow;
+    }
+  }
+
+  // Google sign in
+  Future<bool> signInWithGoogle() async {
+    try {
+      return await supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.gowlok://login-callback/',
+      );
     } catch (_) {
       rethrow;
     }

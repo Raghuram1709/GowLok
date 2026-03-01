@@ -6,6 +6,19 @@ class CattleService {
 
   static final _client = Supabase.instance.client;
 
+  static Future<int> getCattleCount(String farmId) async {
+    try {
+      final response = await _client
+          .from('cattle')
+          .select('id')
+          .eq('farm_id', farmId)
+          .eq('is_active', true);
+      return response.length;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   static Future<List<CattleWithHealth>> getCattleByFarm(String farmId) async {
     try {
       final cattleResponse = await _client
@@ -20,6 +33,17 @@ class CattleService {
 
       final cattleList =
           List<Map<String, dynamic>>.from(cattleResponse as List);
+
+      // Resolve storage paths to public URLs for images
+      for (final cattle in cattleList) {
+        final imageUrl = cattle['primary_image_url']?.toString();
+        if (imageUrl != null && imageUrl.isNotEmpty && !imageUrl.startsWith('http')) {
+          // It's a storage path — generate the full public URL
+          cattle['primary_image_url'] = _client.storage
+              .from('cattle-images')
+              .getPublicUrl(imageUrl);
+        }
+      }
 
       final result = <CattleWithHealth>[];
 

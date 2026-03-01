@@ -13,6 +13,7 @@ class AlertRealtimeService {
   RealtimeChannel? _channel;
   StreamController<void>? _controller;
   String? _currentFarmId;
+  int _refCount = 0;
 
   Stream<void> get alertStream {
     _controller ??= StreamController<void>.broadcast();
@@ -20,11 +21,13 @@ class AlertRealtimeService {
   }
 
   void subscribe(String farmId) {
+    _refCount++;
+
     if (_currentFarmId == farmId && _channel != null) {
       return;
     }
 
-    unsubscribe();
+    _forceUnsubscribe();
 
     _currentFarmId = farmId;
     _controller = StreamController<void>.broadcast();
@@ -33,28 +36,36 @@ class AlertRealtimeService {
       'alerts:farm_id=eq.$farmId',
     );
 
-    _channel!.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'alerts',
-      filter: PostgresChangeFilter(
-        type: PostgresChangeFilterType.eq,
-        column: 'farm_id',
-        value: farmId,
-      ),
-      callback: (payload) {
-        if (!_controller!.isClosed) {
-          _controller!.add(null);
-        }
-      },
-    ).subscribe();
-
-    _channel!.subscribe();
+    _channel!
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'alerts',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'farm_id',
+            value: farmId,
+          ),
+          callback: (payload) {
+            if (_controller != null && !_controller!.isClosed) {
+              _controller!.add(null);
+            }
+          },
+        )
+        .subscribe();
   }
 
   void unsubscribe() {
+    _refCount--;
+    if (_refCount <= 0) {
+      _forceUnsubscribe();
+      _refCount = 0;
+    }
+  }
+
+  void _forceUnsubscribe() {
     if (_channel != null) {
-      _channel!.unsubscribe();
+      Supabase.instance.client.removeChannel(_channel!);
       _channel = null;
     }
 
